@@ -1,3 +1,5 @@
+name: 'R CMD check'
+description: 'Prepare and check a package'
 inputs:
   sourcepkg:
     description: 'File of the source package'
@@ -14,16 +16,7 @@ inputs:
 runs:
   using: "composite"
   steps: 
-    - name: Cleanup system
-      shell: bash
-      run: |
-        if [ "$RUNNER_OS" = "macOS" ]; then
-          brew cask install xquartz 2>&1 | sed 's/^Warning/Note/'
-          curl -fsSOL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh
-          sudo bash uninstall.sh --force --quiet 2>&1 | sed 's/Warning/Note/g'
-          hash -r && rm uninstall.sh
-        fi
-    - name: "Setting up R package library"
+    - name: "Setup R package library"
       shell: bash
       run: |
         if [ "${R_LIBS_USER}" ]; then mkdir -p $R_LIBS_USER; fi
