@@ -16,7 +16,7 @@ inputs:
 outputs:
   binarypkg:
     description: 'Name of the binary package output'
-    value: ${{ steps.checkoutput.outputs.binarypkg }}
+    value: ${{steps.checkoutput.outputs.binarypkg}}
 
 runs:
   using: "composite"
@@ -37,11 +37,11 @@ runs:
         echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > $R_PROFILE_USER
         echo 'options(Ncpus = 2, crayon.enabled = TRUE)' >> $R_PROFILE_USER
         echo 'utils::setRepositories(ind = 1:2)' >> $R_PROFILE_USER
-        echo 'options(repos = c(universe = "${{ cranlikerepo }}", getOption("repos")))' >> $R_PROFILE_USER
+        echo 'options(repos = c(universe = "${{inputs.cranlikerepo}}", getOption("repos")))' >> $R_PROFILE_USER
     - name: Install package dependencies
       run: |
         install.packages('remotes')
-        pkg_deps <- remotes::local_package_deps("${{ sourcepkg }}", dependencies = TRUE)
+        pkg_deps <- remotes::local_package_deps("${{inputs.sourcepkg}}", dependencies = TRUE)
         installed <- row.names(installed.packages())
         pkg_deps <- pkg_deps[is.na(match(pkg_deps, installed))]
         install.packages(pkg_deps)
@@ -50,7 +50,7 @@ runs:
         R_COMPILE_AND_INSTALL_PACKAGES: never
     - name: Build and check package
       shell: bash
-      run: R CMD check ${{ sourcepkg }} --install-args="--build" ${{ checkargs }}
+      run: R CMD check ${{inputs.sourcepkg}} --install-args="--build" ${{inputs.checkargs}}
       env:
         R_BROWSER: echo
         R_PDFVIEWER: echo
@@ -68,7 +68,7 @@ runs:
       run: |
         BINEXT=$(echo $RUNNER_OS | sed 's/Windows/zip/' | sed 's/macOS/tgz/')
         BINARYPKG="${SOURCEPKG%tar.gz}${BINEXT}"
-        LOGFILE="${{ package }}.Rcheck/00install.out"
+        LOGFILE="${{inputs.package}}.Rcheck/00install.out"
         if [ -f ${LOGFILE} ]; then
           echo " ===== Printing: ${LOGFILE} ====="
           cat "${LOGFILE}"
