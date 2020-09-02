@@ -21,14 +21,15 @@ outputs:
 runs:
   using: "composite"
   steps: 
-    - name: Cleanup MacOS system
+    - name: Cleanup system
       shell: bash
-      if: runner.os == 'macos'
       run: |
-        brew cask install xquartz 2>&1 | sed 's/^Warning/Note/'
-        curl -fsSOL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh
-        sudo bash uninstall.sh --force --quiet 2>&1 | sed 's/Warning/Note/g'
-        hash -r && rm uninstall.sh
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          brew cask install xquartz 2>&1 | sed 's/^Warning/Note/'
+          curl -fsSOL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh
+          sudo bash uninstall.sh --force --quiet 2>&1 | sed 's/Warning/Note/g'
+          hash -r && rm uninstall.sh
+        fi
     - name: "Setting up R package library"
       shell: bash
       run: |
@@ -60,7 +61,7 @@ runs:
         R_PROFILE_USER: .Rprofile
         _R_CHECK_FORCE_SUGGESTS_: FALSE
         _R_CHECK_CRAN_INCOMING_: FALSE
-        _R_CHECK_CRAN_INCOMING_REMOTE_: FALSE     
+        _R_CHECK_CRAN_INCOMING_REMOTE_: FALSE
     - id: checkoutput
       name: Process check output
       shell: bash
@@ -79,4 +80,3 @@ runs:
         else
           echo "No binary package $BINARYPKG found. Skipping deployment."
         fi
-      if: ${{ always() }}
