@@ -1,0 +1,82 @@
+inputs:
+  package:
+    description: 'Name of the package'
+    required: true
+  sourcepkg:
+    description: 'File of the source package'
+    required: true
+  checkargs:
+    description: 'Extra args for R CMD check'
+    default: --no-manual --no-build-vignettes
+    required: true
+  cranlikerepo:
+    description: 'URL of the package repository with dependencies'
+    default: 'https://dev.ropensci.org'
+    required: true
+outputs:
+  binarypkg:
+    description: 'Name of the binary package output'
+    value: ${{ steps.checkoutput.outputs.binarypkg }}
+
+runs:
+  using: "composite"
+  steps: 
+    - name: Cleanup MacOS system
+      shell: bash
+      if: runner.os == 'macos'
+      run: |
+        brew cask install xquartz 2>&1 | sed 's/^Warning/Note/'
+        curl -fsSOL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh
+        sudo bash uninstall.sh --force --quiet 2>&1 | sed 's/Warning/Note/g'
+        hash -r && rm uninstall.sh
+    - name: "Setting up R package library"
+      shell: bash
+      run: |
+        if [ "${R_LIBS_USER}" ]; then mkdir -p $R_LIBS_USER; fi
+        echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > $R_PROFILE_USER
+        echo 'options(Ncpus = 2, crayon.enabled = TRUE)' >> $R_PROFILE_USER
+        echo 'utils::setRepositories(ind = 1:2)' >> $R_PROFILE_USER
+        echo 'options(repos = c(universe = "${{ cranlikerepo }}", getOption("repos")))' >> $R_PROFILE_USER
+    - name: Install package dependencies
+      run: |
+        install.packages('remotes')
+        pkg_deps <- remotes::local_package_deps("${{ sourcepkg }}", dependencies = TRUE)
+        installed <- row.names(installed.packages())
+        pkg_deps <- pkg_deps[is.na(match(pkg_deps, installed))]
+        install.packages(pkg_deps)
+      shell: Rscript {0}
+      env:
+        R_COMPILE_AND_INSTALL_PACKAGES: never
+    - name: Build and check package
+      shell: bash
+      run: R CMD check ${{ sourcepkg }} --install-args="--build" ${{ checkargs }}
+      env:
+        R_BROWSER: echo
+        R_PDFVIEWER: echo
+        RGL_USE_NULL: TRUE
+        R_TEXI2DVICMD: emulation
+        NOT_CRAN: FALSE
+        PKG_CONFIG_PATH: /opt/X11/lib/pkgconfig
+        R_PROFILE_USER: .Rprofile
+        _R_CHECK_FORCE_SUGGESTS_: FALSE
+        _R_CHECK_CRAN_INCOMING_: FALSE
+        _R_CHECK_CRAN_INCOMING_REMOTE_: FALSE     
+    - id: checkoutput
+      name: Process check output
+      shell: bash
+      run: |
+        BINEXT=$(echo $RUNNER_OS | sed 's/Windows/zip/' | sed 's/macOS/tgz/')
+        BINARYPKG="${SOURCEPKG%tar.gz}${BINEXT}"
+        LOGFILE="${{ package }}.Rcheck/00install.out"
+        if [ -f ${LOGFILE} ]; then
+          echo " ===== Printing: ${LOGFILE} ====="
+          cat "${LOGFILE}"
+          echo " ===== THE END ====="
+        fi
+        if [ -f "${BINARYPKG}" ]; then
+          echo "Found binary package: $BINARYPKG"
+          echo ::set-output name=binarypkg::$BINARYPKG
+        else
+          echo "No binary package $BINARYPKG found. Skipping deployment."
+        fi
+      if: ${{ always() }}
