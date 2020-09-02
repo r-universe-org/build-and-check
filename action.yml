@@ -13,17 +13,6 @@ inputs:
 
 runs:
   using: "composite"
-  env:
-    R_BROWSER: echo
-    R_PDFVIEWER: echo
-    RGL_USE_NULL: TRUE
-    R_TEXI2DVICMD: emulation
-    NOT_CRAN: FALSE
-    PKG_CONFIG_PATH: /opt/X11/lib/pkgconfig
-    R_PROFILE_USER: .Rprofile
-    _R_CHECK_FORCE_SUGGESTS_: FALSE
-    _R_CHECK_CRAN_INCOMING_: FALSE
-    _R_CHECK_CRAN_INCOMING_REMOTE_: FALSE
   steps: 
     - name: Cleanup system
       shell: bash
@@ -42,6 +31,8 @@ runs:
         echo 'options(Ncpus = 2, crayon.enabled = TRUE)' >> $R_PROFILE_USER
         echo 'utils::setRepositories(ind = 1:2)' >> $R_PROFILE_USER
         echo 'options(repos = c(universe = "${{inputs.cranlikerepo}}", getOption("repos")))' >> $R_PROFILE_USER
+      env:
+        R_PROFILE_USER: .Rprofile
     - name: Install package dependencies
       run: |
         install.packages('remotes')
@@ -55,3 +46,14 @@ runs:
     - name: Build and check package
       shell: bash
       run: R CMD check ${{inputs.sourcepkg}} --install-args="--build" ${{inputs.checkargs}}
+      env:
+        R_BROWSER: echo
+        R_PDFVIEWER: echo
+        RGL_USE_NULL: TRUE
+        R_TEXI2DVICMD: emulation
+        NOT_CRAN: FALSE
+        PKG_CONFIG_PATH: /opt/X11/lib/pkgconfig
+        R_PROFILE_USER: .Rprofile
+        _R_CHECK_FORCE_SUGGESTS_: FALSE
+        _R_CHECK_CRAN_INCOMING_: FALSE
+        _R_CHECK_CRAN_INCOMING_REMOTE_: FALSE
