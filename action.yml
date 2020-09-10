@@ -38,7 +38,7 @@ runs:
       env:
         R_COMPILE_AND_INSTALL_PACKAGES: never
     - name: Build and check package
-      shell: bash
+      shell: cmd
       run: R CMD check ${{inputs.sourcepkg}} --install-args="--build" ${{inputs.checkargs}}
       env:
         R_BROWSER: echo
