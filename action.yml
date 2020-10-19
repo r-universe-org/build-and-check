@@ -23,7 +23,7 @@ runs:
         echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > $R_PROFILE_USER
         echo 'options(Ncpus = 2, crayon.enabled = TRUE)' >> $R_PROFILE_USER
         echo 'utils::setRepositories(ind = 1:2)' >> $R_PROFILE_USER
-        echo 'options(repos = c(universe = ${{inputs.cranlikerepo}}, getOption("repos")))' >> $R_PROFILE_USER
+        echo 'options(repos = c(universe = trimws(strsplit(${{inputs.cranlikerepo}}, ";")[[1]]), getOption("repos")))' >> $R_PROFILE_USER
         cat $R_PROFILE_USER
       env:
         R_PROFILE_USER: .Rprofile
