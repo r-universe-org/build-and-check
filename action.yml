@@ -23,6 +23,7 @@ runs:
         echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > $R_PROFILE_USER
         echo 'options(Ncpus = 2, crayon.enabled = TRUE)' >> $R_PROFILE_USER
         echo 'utils::setRepositories(ind = 1:3)' >> $R_PROFILE_USER
+        echo 'Sys.unsetenv(c("CI", "GITHUB_ACTIONS"))' >> $R_PROFILE_USER
         echo 'options(repos = c(universe = trimws(strsplit(${{inputs.cranlikerepo}}, ";")[[1]]), getOption("repos")))' >> $R_PROFILE_USER
         cat $R_PROFILE_USER
       env:
@@ -51,5 +52,3 @@ runs:
         _R_CHECK_FORCE_SUGGESTS_: FALSE
         _R_CHECK_CRAN_INCOMING_: FALSE
         _R_CHECK_CRAN_INCOMING_REMOTE_: FALSE
-        GITHUB_ACTIONS: ""
-        CI: ""
