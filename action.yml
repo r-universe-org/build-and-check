@@ -19,6 +19,7 @@ runs:
     - name: "Setup R package library"
       shell: bash
       run: |
+        echo "::group::Setup R package library"
         if [ "${R_LIBS_USER}" ]; then mkdir -p $R_LIBS_USER; fi
         echo 'options(repos = c(CRAN = "https://cloud.r-project.org"))' > $R_PROFILE_USER
         echo 'options(Ncpus = 2, crayon.enabled = TRUE)' >> $R_PROFILE_USER
@@ -27,15 +28,18 @@ runs:
         echo 'Sys.unsetenv(c("CI", "GITHUB_ACTIONS"))' >> $R_PROFILE_USER
         echo 'options(repos = c(universe = trimws(strsplit(${{inputs.cranlikerepo}}, ";")[[1]]), getOption("repos")))' >> $R_PROFILE_USER
         cat $R_PROFILE_USER
+        echo "::endgroup::"
       env:
         R_PROFILE_USER: .Rprofile
     - name: Install package dependencies
       run: |
+        echo "::group::Install package dependencies"
         install.packages('remotes')
         pkg_deps <- remotes::local_package_deps("${{inputs.sourcepkg}}", dependencies = TRUE)
         installed <- row.names(installed.packages())
         pkg_deps <- pkg_deps[is.na(match(pkg_deps, installed))]
         install.packages(pkg_deps)
+        echo "::endgroup::"
       shell: Rscript {0}
       env:
         R_COMPILE_AND_INSTALL_PACKAGES: never
