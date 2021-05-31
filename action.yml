@@ -37,8 +37,15 @@ runs:
         install.packages('remotes')
         pkg_deps <- remotes::local_package_deps("${{inputs.sourcepkg}}", dependencies = TRUE)
         installed <- row.names(installed.packages())
-        pkg_deps <- pkg_deps[is.na(match(pkg_deps, installed))]
-        install.packages(pkg_deps)
+        needpkg <- setdiff(pkg_deps, installed)
+        avail <- row.names(available.packages())
+        install <- intersect(needpkg, avail)
+        unavail <- setdiff(needpkg, avail)
+        install.packages(install)
+        if(length(unavail)) {
+          warning("Installing from remotes: ", paste(unavail, collapse = ','))
+          remotes::install_deps("${{inputs.sourcepkg}}", dependencies = TRUE, upgrade = FALSE)
+        }
         cat('::endgroup::\n')
       shell: Rscript {0}
       env:
