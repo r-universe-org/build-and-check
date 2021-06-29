@@ -18,7 +18,7 @@ runs:
   steps:
     - name: "Update pacman"
       run: |
-        pacman -Sy --noconfirm --needed mingw-w64-{i686,x86_64}-{gsl,fftw,curl} || true
+        pacman -Sy --noconfirm --needed mingw-w64-{i686,x86_64}-{gsl,fftw} || true
       shell: c:\rtools40\usr\bin\bash.exe --login {0}
 
     - name: "Setup R package library"
