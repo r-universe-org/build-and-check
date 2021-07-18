@@ -25,8 +25,8 @@ runs:
       shell: c:\rtools40\usr\bin\bash.exe --login {0}
 
     - name: "Install Java if needed"
-      run: choco install jre8 -PackageParameters "/exclude:64" -y
-      if: ${{inputs.java}}
+      run: if ('${{inputs.java}}') { choco install jre8 --no-progress -PackageParameters "/exclude:64" -y }
+      shell: pwsh
 
     - name: "Setup R package library"
       shell: bash
