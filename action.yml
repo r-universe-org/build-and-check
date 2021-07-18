@@ -12,6 +12,9 @@ inputs:
     description: 'URL of the package repository with dependencies'
     default: 'Sys.getenv("MY_UNIVERSE", "https://dev.ropensci.org")'
     required: true
+  java:
+    description: 'Package depends on rJava'
+    required: false
 
 runs:
   using: "composite"
@@ -20,6 +23,10 @@ runs:
       run: |
         pacman -Sy --noconfirm --needed mingw-w64-{i686,x86_64}-{gsl,fftw} || true
       shell: c:\rtools40\usr\bin\bash.exe --login {0}
+
+    - name: "Install Java if needed"
+      run: choco install jre8 -PackageParameters "/exclude:64" -y
+      if: ${{inputs.java}}
 
     - name: "Setup R package library"
       shell: bash
