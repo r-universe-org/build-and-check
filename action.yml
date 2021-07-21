@@ -25,7 +25,7 @@ runs:
       shell: c:\rtools40\usr\bin\bash.exe --login {0}
 
     - name: "Install Java if needed"
-      run: if ('${{inputs.java}}') { choco install jre8 --no-progress -PackageParameters "/exclude:64" -y; refreshenv }
+      run: if ('${{inputs.java}}') { choco install jre8 --no-progress -y }
       shell: pwsh
 
     - name: "Setup R package library"
@@ -76,3 +76,4 @@ runs:
         _R_CHECK_FORCE_SUGGESTS_: FALSE
         _R_CHECK_CRAN_INCOMING_: FALSE
         _R_CHECK_CRAN_INCOMING_REMOTE_: FALSE
+        JAVA_HOME: ""
